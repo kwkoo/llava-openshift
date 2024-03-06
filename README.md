@@ -37,6 +37,10 @@ After the ollama pod comes up, test it with:
 		  "images":["'"$(echo -n $photo)"'"]
 		}' | jq -r .response
 
+01. Deploy the frontend
+
+		make deploy-frontend
+
 
 ## Resources
 
