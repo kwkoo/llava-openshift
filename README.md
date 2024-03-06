@@ -20,11 +20,9 @@ After the ollama pod comes up, test it with:
 
 		export ourl=http://$(oc get -n $proj route/ollama -o jsonpath='{.spec.host}')
 
-		curl $ourl
+		curl "$ourl"
 
 01. Convert the picture to Base64
-
-		curl $ourl
 
 		export photo="$(curl $purl | base64)"
 
