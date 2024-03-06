@@ -1,0 +1,66 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    app: llava-frontend
+  name: llava-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: llava-frontend
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app: llava-frontend
+    spec:
+      containers:
+      - image: ghcr.io/kwkoo/llava-frontend
+        name: llava-frontend
+        ports:
+        - name: http
+          containerPort: 8080
+        livenessProbe:
+          httpGet:
+            path: /
+            port: http
+        readinessProbe:
+          httpGet:
+            path: /
+            port: http
+        resources: {}
+status: {}
+---
+apiVersion: v1
+kind: Service
+metadata:
+  labels:
+    app: llava-frontend
+  name: llava-frontend
+spec:
+  ports:
+  - port: 8080
+    protocol: TCP
+    targetPort: 8080
+  selector:
+    app: llava-frontend
+status:
+  loadBalancer: {}
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  labels:
+    app: llava-frontend
+  name: llava-frontend
+spec:
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Allow
+  port:
+    targetPort: 8080
+  to:
+    name: llava-frontend
+    weight: null
+status: {}

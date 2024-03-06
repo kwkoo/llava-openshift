@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>LLaVA Frontend</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="app.js"></script>
+</head>
+<body>
+
+  <div class="title">LLaVA Frontend</div>
+  <div class="grid-columns">
+    <label class="label grid-item">Prompt</label>
+    <input class="grid-item" id="prompt" type="text" size="50" value="What is in this picture?"/>
+  </div>
+  <!-- from https://www.digitalocean.com/community/tutorials/how-to-handle-file-uploads-in-vue-2 -->
+  <form enctype="multipart/form-data" novalidate>
+    <div class="uploadDropbox">
+      <input type="file" id="imageUpload" onchange="uploadImage(event)" accept="image/*" class="input-file">
+      <p>
+        Drag your file here to import an image
+        <br>
+        or click to browse
+      </p>
+    </div>
+  </form>
+  <div id="send-container">
+    <button onclick="sendRequest()">Send</button>
+  </div>
+  <img id="preview"/>
+  <textarea id="response" rows="10" cols="80" readonly></textarea>
+
+</body>
+</html>

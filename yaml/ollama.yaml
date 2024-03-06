@@ -112,6 +112,8 @@ spec:
           value: /usr/local/nvidia/lib:/usr/local/nvidia/lib64
         - name: NVIDIA_DRIVER_CAPABILITIES
           value: compute,utility
+        - name: OLLAMA_ORIGINS
+          value: "*"
         args:
         resources:
           limits:

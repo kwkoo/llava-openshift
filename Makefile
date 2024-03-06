@@ -1,8 +1,9 @@
-BASE:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
-
+FRONTEND_IMAGE=ghcr.io/kwkoo/llava-frontend
 PROJ=demo
 
-.PHONY: deploy ensure-logged-in deploy-nfd deploy-nvidia deploy-ollama
+BASE:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
+
+.PHONY: deploy ensure-logged-in deploy-nfd deploy-nvidia deploy-ollama deploy-frontend frontend-image
 
 deploy: deploy-nvidia deploy-ollama
 	@echo "installation completed"
@@ -75,3 +76,17 @@ deploy-ollama:
 	oc get limitrange -n $(PROJ) -o name | xargs oc delete -n $(PROJ)
 	oc apply -n $(PROJ) -f $(BASE)/yaml/ollama.yaml
 	oc rollout status sts/ollama -n $(PROJ) -w --timeout=600s
+
+deploy-frontend:
+	oc apply -n $(PROJ) -f $(BASE)/yaml/llava-frontend.yaml
+	@/bin/echo -n "waiting for route..."
+	@until oc get -n $(PROJ) route/llava-frontend >/dev/null 2>/dev/null; do \
+	  /bin/echo -n "."; \
+	  sleep 5; \
+	done
+	@echo "done"
+	@echo "access the frontend at http://`oc get -n $(PROJ) route/llava-frontend -o jsonpath='{.spec.host}'`"
+
+frontend-image:
+	docker build -t $(FRONTEND_IMAGE) $(BASE)/frontend
+	docker push $(FRONTEND_IMAGE)
