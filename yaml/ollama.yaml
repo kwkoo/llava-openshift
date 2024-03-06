@@ -1,0 +1,203 @@
+# 1. Generate yaml with:
+# helm template ollama ollama \
+#   --repo https://otwld.github.io/ollama-helm/ \
+#   --set persistentVolume.enabled=true \
+#   --set ollama.gpu.enabled=true \
+#   --set ollama.models="{llava}" \
+# | \
+# grep -v 'helm.sh/chart' \
+# | \
+# grep -v 'app.kubernetes.io/version' \
+# | \
+# grep -v 'app.kubernetes.io/managed-by'
+#
+# 2. Change Deployment to StatefulSet
+#
+# 3. Comment out StatefulSet's .spec.template.spec.volumes
+#
+# 4. Add .spec.volumeClaimTemplates to StatefulSet
+#
+# 5. Set the StatefulSet's HOME environment variable to /fakehome
+#
+# 6. Change volumeMount to /fakehome
+#
+# 7. Add route
+#
+# 8. Comment out PVC
+#
+---
+# Source: ollama/templates/serviceaccount.yaml
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: ollama
+  labels:
+    app.kubernetes.io/name: ollama
+    app.kubernetes.io/instance: ollama
+automountServiceAccountToken: true
+---
+# Source: ollama/templates/pvc.yaml
+#apiVersion: v1
+#kind: PersistentVolumeClaim
+#metadata:
+#  labels:
+#    app.kubernetes.io/name: ollama
+#    app.kubernetes.io/instance: ollama
+#  name: ollama
+#spec:
+#  accessModes:
+#    - ReadWriteOnce
+#  resources:
+#    requests:
+#      storage: "30Gi"
+---
+# Source: ollama/templates/service.yaml
+apiVersion: v1
+kind: Service
+metadata:
+  name: ollama
+  labels:
+    app.kubernetes.io/name: ollama
+    app.kubernetes.io/instance: ollama
+spec:
+  type: ClusterIP
+  ports:
+    - port: 11434
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app.kubernetes.io/name: ollama
+    app.kubernetes.io/instance: ollama
+---
+# Source: ollama/templates/deployment.yaml
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: ollama
+  labels:
+    app.kubernetes.io/name: ollama
+    app.kubernetes.io/instance: ollama
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app.kubernetes.io/name: ollama
+      app.kubernetes.io/instance: ollama
+  template:
+    metadata:
+      labels:
+        app.kubernetes.io/name: ollama
+        app.kubernetes.io/instance: ollama
+    spec:
+      serviceAccountName: ollama
+      securityContext:
+        {}
+      containers:
+      - name: ollama
+        securityContext:
+          {}
+        image: "ollama/ollama:0.1.28"
+        imagePullPolicy: IfNotPresent
+        ports:
+        - name: http
+          containerPort: 11434
+          protocol: TCP
+        env:
+        - name: HOME
+          value: /fakehome
+        - name: PATH
+          value: /usr/local/nvidia/bin:/usr/local/cuda/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+        - name: LD_LIBRARY_PATH
+          value: /usr/local/nvidia/lib:/usr/local/nvidia/lib64
+        - name: NVIDIA_DRIVER_CAPABILITIES
+          value: compute,utility
+        args:
+        resources:
+          limits:
+            cpu: 4000m
+            memory: 8192Mi
+            nvidia.com/gpu: 1
+          requests:
+            cpu: 2000m
+            memory: 4096Mi
+        volumeMounts:
+        - name: ollama-data
+          mountPath: /fakehome
+        livenessProbe:
+          httpGet:
+            path: /
+            port: http
+          initialDelaySeconds: 60
+          periodSeconds: 10
+          timeoutSeconds: 5
+          successThreshold: 1
+          failureThreshold: 6
+        readinessProbe:
+          httpGet:
+            path: /
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 5
+          timeoutSeconds: 3
+          successThreshold: 1
+          failureThreshold: 6
+        lifecycle:
+          postStart:
+            exec:
+              command: [ "/bin/sh", "-c", "echo llava | xargs -n1 /bin/ollama pull " ]
+      #volumes:
+      #  - name: ollama-data
+      #    persistentVolumeClaim:
+      #      claimName: ollama
+      tolerations:
+        - key: nvidia.com/gpu
+          operator: Exists
+          effect: NoSchedule
+  volumeClaimTemplates:
+  - metadata:
+      name: ollama-data
+    spec:
+      accessModes:
+      - ReadWriteOnce
+      resources:
+        requests:
+          storage: 16Gi
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  labels:
+    app.kubernetes.io/instance: ollama
+    app.kubernetes.io/name: ollama
+  name: ollama
+spec:
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Allow
+  port:
+    targetPort: http
+  to:
+    kind: Service
+    name: ollama
+    weight: 100
+  wildcardPolicy: None
+status: {}
+---
+# Source: ollama/templates/tests/test-connection.yaml
+#apiVersion: v1
+#kind: Pod
+#metadata:
+#  name: "ollama-test-connection"
+#  labels:
+#    app.kubernetes.io/name: ollama-test-connection
+#    app.kubernetes.io/instance: ollama
+#  annotations:
+#    "helm.sh/hook": test
+#spec:
+#  containers:
+#    - name: wget
+#      image: busybox
+#      command: ['wget']
+#      args: ['ollama:11434']
+#  restartPolicy: Never
