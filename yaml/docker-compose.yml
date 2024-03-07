@@ -1,0 +1,33 @@
+version: "3.5"
+
+services:
+
+  frontend:
+    container_name: frontend
+    image: "ghcr.io/kwkoo/llava-frontend"
+    ports:
+    - 8080:8080
+    depends_on:
+    - ollama
+
+  ollama:
+    container_name: ollama
+    image: "ollama/ollama:0.1.28"
+    environment:
+    - OLLAMA_ORIGINS=*
+    ports:
+    - 11434:11434
+
+  imagepull:
+    container_name: imagepull
+    image: "curlimages/curl:7.78.0"
+    command:
+    - sh
+    - "-c"
+    - |
+      until curl ollama:11434 >/dev/null 2>/dev/null; do
+        sleep 5
+      done
+      curl ollama:11434/api/pull -d '{"name":"llava"}'
+    depends_on:
+    - ollama
