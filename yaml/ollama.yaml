@@ -147,7 +147,16 @@ spec:
         lifecycle:
           postStart:
             exec:
-              command: [ "/bin/sh", "-c", "echo llava | xargs -n1 /bin/ollama pull " ]
+              command:
+              - "/bin/bash"
+              - "-c"
+              - |
+                if [ `ollama list llava | wc -l` -lt 2 ]; then
+                  echo "model does not exist and needs to be pulled"
+                  ollama pull llava
+                else
+                  echo "model already exists"
+                fi
       #volumes:
       #  - name: ollama-data
       #    persistentVolumeClaim:

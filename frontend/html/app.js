@@ -75,7 +75,9 @@ async function readStreamLineByLine(stream) {
 function sendRequest() {
   document.getElementById('send-container').style.display = 'none';
   document.getElementById('loader').style.display = 'block';
-  document.getElementById('response').value = '';
+  let responseui = document.getElementById('response');
+  responseui.value = '';
+  responseui.style.display = 'none';
   let imageSrc = document.getElementById('preview').src;
   if (imageSrc == null | imageSrc.length == 0) {
     resetUpload();
