@@ -70,6 +70,14 @@
     margin-right: auto;
 }
 
+#loader {
+    display: none;
+    margin-top: 10px;
+    margin-bottom: 10px;
+    margin-left: auto;
+    margin-right: auto;
+}
+
 #response {
     width: 80vw;
     display: none;

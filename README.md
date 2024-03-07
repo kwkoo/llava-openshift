@@ -4,7 +4,12 @@ This repo sets up [LLaVA](https://github.com/haotian-liu/LLaVA) running in [Olla
 
 It is meant to be deployed on top of the `NVIDIA GPU Operator OCP4 Workshop` demo cluster.
 
-To deploy, run
+
+## Deploying on OpenShift
+
+Provision an `NVIDIA GPU Operator OCP4 Workshop` demo cluster.
+
+To deploy to the cluster, run
 
 	make deploy
 
@@ -40,6 +45,17 @@ After the ollama pod comes up, test it with:
 01. Deploy the frontend
 
 		make deploy-frontend
+
+
+## docker compose
+
+To run this with `docker compose`,
+
+	cd ./yaml
+
+	docker compose up
+
+Access the frontend at <http://localhost:8080>
 
 
 ## Resources

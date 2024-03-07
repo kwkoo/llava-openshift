@@ -2,6 +2,7 @@ function resetUpload() {
   document.getElementById("imageUpload").value = '';
   document.getElementById('preview').style.display = 'none';
   document.getElementById('send-container').style.display = 'none';
+  document.getElementById('loader').style.display = 'none';
   let response = document.getElementById('response');
   response.style.display = 'none';
   response.value = '';
@@ -23,8 +24,8 @@ function uploadImage(event) {
     let preview = document.getElementById('preview');
     preview.src = docs.base64;
     preview.style.display = 'block';
-    let button = document.getElementById('send-container');
-    button.style.display = 'flex';
+    document.getElementById('send-container').style.display = 'flex';
+    document.getElementById('loader').style.display = 'none';
   }
 }
 
@@ -38,7 +39,6 @@ function processLine(line) {
   }
   if (obj.response != null) {
     document.getElementById('response').value += obj.response;
-    //console.log('chunk: ' + obj.response);
     return;
   }
 }
@@ -73,6 +73,8 @@ async function readStreamLineByLine(stream) {
 }
 
 function sendRequest() {
+  document.getElementById('send-container').style.display = 'none';
+  document.getElementById('loader').style.display = 'block';
   document.getElementById('response').value = '';
   let imageSrc = document.getElementById('preview').src;
   if (imageSrc == null | imageSrc.length == 0) {
@@ -105,14 +107,18 @@ function sendRequest() {
       body: JSON.stringify(payload)
     })
     .then(response => {
-        let responseui = document.getElementById('response');
-        responseui.value = '';
-        responseui.style.display = 'block';
-        return response.body;
+      document.getElementById('send-container').style.display = 'flex';
+      document.getElementById('loader').style.display = 'none';
+      let responseui = document.getElementById('response');
+      responseui.value = '';
+      responseui.style.display = 'block';
+      return response.body;
     })
     .then(readStreamLineByLine)
     .catch(error => {
-        alert('error fetching stream');
-        console.log(error);
+      alert('error fetching stream');
+      console.log(error);
+      document.getElementById('send-container').style.display = 'flex';
+      document.getElementById('loader').style.display = 'none';
     });
 }
