@@ -1,4 +1,5 @@
 FRONTEND_IMAGE=ghcr.io/kwkoo/llava-frontend
+BUILDERNAME=multiarch-builder
 PROJ=demo
 
 BASE:=$(shell dirname $(realpath $(lastword $(MAKEFILE_LIST))))
@@ -88,5 +89,13 @@ deploy-frontend:
 	@echo "access the frontend at http://`oc get -n $(PROJ) route/llava-frontend -o jsonpath='{.spec.host}'`"
 
 frontend-image:
-	docker build -t $(FRONTEND_IMAGE) $(BASE)/frontend
-	docker push $(FRONTEND_IMAGE)
+
+	docker buildx use $(BUILDERNAME) || docker buildx create --name $(BUILDERNAME) --use
+	docker buildx build \
+	  --push \
+	  --platform=linux/amd64,linux/arm64 \
+	  --rm \
+	  -t $(FRONTEND_IMAGE) \
+	  $(BASE)/frontend
+	#docker build -t $(FRONTEND_IMAGE) $(BASE)/frontend
+	#docker push $(FRONTEND_IMAGE)

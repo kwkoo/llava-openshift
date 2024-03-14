@@ -94,7 +94,7 @@ function sendRequest() {
   index += ';base64,'.length;
   imageSrc = imageSrc.substring(index);
   let payload = {
-    model: "llava",
+    model: "$MODEL",
     prompt: document.getElementById('prompt').value,
     images: [imageSrc]
   }

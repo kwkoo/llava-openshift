@@ -20,6 +20,9 @@ spec:
       containers:
       - image: ghcr.io/kwkoo/llava-frontend
         name: llava-frontend
+        env:
+        - name: MODEL
+          value: "llava:13b-v1.6"
         ports:
         - name: http
           containerPort: 8080
@@ -31,6 +34,14 @@ spec:
           httpGet:
             path: /
             port: http
+        lifecycle:
+          postStart:
+            exec:
+              command:
+              - "sh"
+              - "-c"
+              - |
+                sed -i 's/$MODEL/'"$MODEL"'/' /html/app.js
         resources: {}
 status: {}
 ---
