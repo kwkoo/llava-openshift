@@ -64,6 +64,8 @@ status:
 apiVersion: route.openshift.io/v1
 kind: Route
 metadata:
+  annotations:
+    haproxy.router.openshift.io/timeout: "10m"
   labels:
     app: llava-frontend
   name: llava-frontend
