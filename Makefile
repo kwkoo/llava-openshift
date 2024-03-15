@@ -89,7 +89,6 @@ deploy-frontend:
 	@echo "access the frontend at http://`oc get -n $(PROJ) route/llava-frontend -o jsonpath='{.spec.host}'`"
 
 frontend-image:
-
 	docker buildx use $(BUILDERNAME) || docker buildx create --name $(BUILDERNAME) --use
 	docker buildx build \
 	  --push \
