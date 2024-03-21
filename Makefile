@@ -24,7 +24,7 @@ deploy-nfd: ensure-logged-in
 	@echo 'done'
 	oc apply -f $(BASE)/yaml/nfd-cr.yaml
 	@/bin/echo -n 'waiting for nodes to be labelled...'
-	@while [ `oc get nodes --no-headers -l 'feature.node.kubernetes.io/pci-10de.present=true' 2>/dev/null | wc -l` -lt 2 ]; do \
+	@while [ `oc get nodes --no-headers -l 'feature.node.kubernetes.io/pci-10de.present=true' 2>/dev/null | wc -l` -lt 1 ]; do \
 	  /bin/echo -n '.'; \
 	  sleep 5; \
 	done
@@ -75,12 +75,9 @@ deploy-ollama:
 	done
 	@echo "done"
 	oc get limitrange -n $(PROJ) -o name | xargs oc delete -n $(PROJ)
-	oc apply -n $(PROJ) -f $(BASE)/yaml/ollama.yaml
+	oc apply -n $(PROJ) -k $(BASE)/yaml/overlays/13b/
 	oc rollout status sts/ollama -n $(PROJ) -w --timeout=600s
-
-deploy-frontend:
-	oc apply -n $(PROJ) -f $(BASE)/yaml/llava-frontend.yaml
-	@/bin/echo -n "waiting for route..."
+	@/bin/echo -n "waiting for frontend route..."
 	@until oc get -n $(PROJ) route/llava-frontend >/dev/null 2>/dev/null; do \
 	  /bin/echo -n "."; \
 	  sleep 5; \

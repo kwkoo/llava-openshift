@@ -1,3 +1,9 @@
+var video = null;
+var streaming = false;
+var canvas = null;
+var width = 320;
+var height = 0;
+
 function resetUpload() {
   document.getElementById("imageUpload").value = '';
   document.getElementById('preview').style.display = 'none';
@@ -73,6 +79,7 @@ async function readStreamLineByLine(stream) {
 }
 
 function sendRequest() {
+  showWebcamSendContainer(false);
   document.getElementById('send-container').style.display = 'none';
   document.getElementById('loader').style.display = 'block';
   let responseui = document.getElementById('response');
@@ -95,6 +102,7 @@ function sendRequest() {
   imageSrc = imageSrc.substring(index);
   let payload = {
     model: "$MODEL",
+    keep_alive: "300m",
     prompt: document.getElementById('prompt').value,
     images: [imageSrc]
   }
@@ -109,6 +117,7 @@ function sendRequest() {
       body: JSON.stringify(payload)
     })
     .then(response => {
+      showWebcamSendContainer(true);
       document.getElementById('send-container').style.display = 'flex';
       document.getElementById('loader').style.display = 'none';
       let responseui = document.getElementById('response');
@@ -122,5 +131,61 @@ function sendRequest() {
       console.log(error);
       document.getElementById('send-container').style.display = 'flex';
       document.getElementById('loader').style.display = 'none';
+      showWebcamSendContainer(true);
     });
+}
+
+function showWebcamSendContainer(show) {
+  let container = document.getElementById('webcam-send-container');
+  if (container == null) return;
+  container.style.display = (show?'flex':'none');
+}
+
+function initializeVideo() {
+  video = document.getElementById('video');
+
+  navigator.mediaDevices.getUserMedia({video: true, audio: false})
+    .then(function(stream) {
+      video.srcObject = stream;
+      video.play();
+    })
+    .catch(function(err) {
+      console.log("An error occurred: " + err);
+    });
+
+    video.addEventListener('canplay', function(ev){
+      if (!streaming) {
+        height = video.videoHeight / (video.videoWidth/width);
+      
+        // Firefox currently has a bug where the height can't be read from
+        // the video, so we will make assumptions if this happens.
+      
+        if (isNaN(height)) {
+          height = width / (4/3);
+        }
+      
+        video.setAttribute('width', width);
+        video.setAttribute('height', height);
+        let preview = document.getElementById('preview');
+        preview.setAttribute('width', width);
+        preview.setAttribute('height', height);
+        streaming = true;
+      }
+    }, false);
+
+    canvas = document.getElementById('canvas');
+}
+
+function webcamSendRequest() {
+  var context = canvas.getContext('2d');
+  if (width && height) {
+    canvas.width = width;
+    canvas.height = height;
+    context.drawImage(video, 0, 0, width, height);
+
+    var data = canvas.toDataURL('image/jpeg');
+    document.getElementById('preview').setAttribute('src', data);
+    document.getElementById('preview').style.display = 'block';
+  }
+  sendRequest();
 }

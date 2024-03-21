@@ -1,0 +1,18 @@
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  annotations:
+    haproxy.router.openshift.io/timeout: "30m"
+  labels:
+    app: llava-frontend
+  name: llava-frontend
+spec:
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Allow
+  port:
+    targetPort: 8080
+  to:
+    name: llava-frontend
+    weight: null
+status: {}

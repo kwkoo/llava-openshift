@@ -42,9 +42,15 @@ After the ollama pod comes up, test it with:
 		  "images":["'"$(echo -n $photo)"'"]
 		}' | jq -r .response
 
-01. Deploy the frontend
+01. You can access the web frontend at
 
-		make deploy-frontend
+		echo "http://$(oc get route/llava-frontend -n demo -o jsonpath='{.spec.host}')"
+
+01. There's also a version of the frontend that lets you pull images from your webcam at
+
+		echo "https://$(oc get route/llava-frontend -n demo -o jsonpath='{.spec.host}')/webcam.html"
+
+	Notice how we access the page using `https` and not `http` - this is required for the browser to access the webcam
 
 
 ## docker compose

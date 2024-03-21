@@ -1,0 +1,46 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    app.openshift.io/connects-to: '[{"apiVersion":"apps/v1","kind":"StatefulSet","name":"ollama"}]'
+  labels:
+    app: llava-frontend
+  name: llava-frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: llava-frontend
+  strategy: {}
+  template:
+    metadata:
+      labels:
+        app: llava-frontend
+    spec:
+      containers:
+      - image: ghcr.io/kwkoo/llava-frontend
+        name: llava-frontend
+        env:
+        - name: MODEL
+          value: "llava:13b-v1.6"
+        ports:
+        - name: http
+          containerPort: 8080
+        livenessProbe:
+          httpGet:
+            path: /
+            port: http
+        readinessProbe:
+          httpGet:
+            path: /
+            port: http
+        lifecycle:
+          postStart:
+            exec:
+              command:
+              - "sh"
+              - "-c"
+              - |
+                sed -i 's/$MODEL/'"$MODEL"'/' /html/app.js
+        resources: {}
+status: {}

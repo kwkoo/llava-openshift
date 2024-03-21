@@ -1,0 +1,26 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>LLaVA Frontend</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="app.js"></script>
+</head>
+<body onload="initializeVideo()">
+
+  <div class="title">LLaVA Frontend</div>
+  <video id="video">Video stream not available.</video>
+  <canvas id="canvas"></canvas>
+  <div class="grid-columns">
+    <label class="label grid-item">Prompt</label>
+    <input class="grid-item" id="prompt" type="text" size="50" value="What is in this picture?"/>
+  </div>
+  <div id="send-container"></div>
+  <div id="webcam-send-container">
+    <button onclick="webcamSendRequest()">Send</button>
+  </div>
+  <img id="preview"/>
+  <img id="loader" src="ajax-loader.gif"/>
+  <textarea id="response" rows="10" cols="80" readonly></textarea>
+
+</body>
+</html>
