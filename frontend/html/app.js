@@ -143,11 +143,31 @@ function showWebcamSendContainer(show) {
 
 function initializeVideo() {
   video = document.getElementById('video');
+  video.onloadeddata = () => {
+    width = video.videoWidth;
+    height = video.videoHeight;
+
+    let preview = document.getElementById('preview');
+    preview.setAttribute('width', width);
+    preview.setAttribute('height', height);
+    preview.style.width = width;
+    preview.style.height = height;
+  }
 
   navigator.mediaDevices.getUserMedia({video: true, audio: false})
     .then(function(stream) {
       video.srcObject = stream;
-      video.play();
+
+      // for iOS - https://stackoverflow.com/a/47460448
+      var promise = video.play();
+      if (promise !== undefined) {
+        promise.catch(error => {
+          // auto-play prevented
+          video.controls = true;
+        }).then(() => {
+          // auto-play ok
+        });
+      }
     })
     .catch(function(err) {
       console.log("An error occurred: " + err);
@@ -163,13 +183,13 @@ function initializeVideo() {
         if (isNaN(height)) {
           height = width / (4/3);
         }
-      
-        video.setAttribute('width', width);
-        video.setAttribute('height', height);
-        let preview = document.getElementById('preview');
-        preview.setAttribute('width', width);
-        preview.setAttribute('height', height);
+
         streaming = true;
+
+        // required for iOS - https://stackoverflow.com/a/69472600
+        video.setAttribute('autoplay', '');
+        video.setAttribute('muted', '');
+        video.setAttribute('playsinline', '');
       }
     }, false);
 
